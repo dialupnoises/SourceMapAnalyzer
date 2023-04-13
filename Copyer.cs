@@ -17,25 +17,33 @@ namespace SourceMapAnalyzer
 			var readDirs = new Dictionary<string, string[]>();
 			foreach(var file in files)
 			{
-				var fileNoExt = Path.GetFileNameWithoutExtension(file).ToLower();
+				var fileNoExt = WithoutAllExtensions(file).ToLower();
 				var fileDir = Path.GetDirectoryName(file);
 				var searchDir = Path.Combine(baseDir, fileDir);
-				if(!Directory.Exists(searchDir))
+				if (!Directory.Exists(searchDir))
+				{
 					continue;
+				}
 
-				if(!readDirs.ContainsKey(searchDir))
+				if (!readDirs.ContainsKey(searchDir))
+				{
 					readDirs[searchDir] = Directory.GetFiles(searchDir);
+				}
 
-				var filesWithName = readDirs[searchDir].Where(f => Path.GetFileNameWithoutExtension(f).ToLower() == fileNoExt);
+				var filesWithName = readDirs[searchDir].Where(f => WithoutAllExtensions(f).ToLower() == fileNoExt);
 				CreateDirectoryStructure(newDir, fileDir);
 				foreach(var f in filesWithName)
 				{
 					var destFile = Path.Combine(newDir, f.Replace(baseDir + "\\", ""));
-					if(!File.Exists(destFile))
+					if (!File.Exists(destFile))
+					{
 						File.Copy(f, destFile);
+					}
 				}
 			}
 		}
+
+		private static string WithoutAllExtensions(string fileName) => Path.GetFileName(fileName).Split('.')[0];
 
 		private static void CreateDirectoryStructure(string baseDir, string dir)
 		{
