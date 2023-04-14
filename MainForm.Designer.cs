@@ -51,6 +51,8 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.packageModeDropdown = new System.Windows.Forms.ComboBox();
 			this.label3 = new System.Windows.Forms.Label();
+			this.portedVpksList = new System.Windows.Forms.CheckedListBox();
+			this.label4 = new System.Windows.Forms.Label();
 			this.vpkTabPage.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.vpkContainer)).BeginInit();
 			this.vpkContainer.Panel1.SuspendLayout();
@@ -232,6 +234,8 @@
 			// 
 			// processTab
 			// 
+			this.processTab.Controls.Add(this.label4);
+			this.processTab.Controls.Add(this.portedVpksList);
 			this.processTab.Controls.Add(this.label3);
 			this.processTab.Controls.Add(this.packageModeDropdown);
 			this.processTab.Controls.Add(this.processButton);
@@ -318,19 +322,36 @@
             "Folder Per Map",
             "Combined Folder",
             "Combined Addon"});
-			this.packageModeDropdown.Location = new System.Drawing.Point(94, 58);
+			this.packageModeDropdown.Location = new System.Drawing.Point(92, 58);
 			this.packageModeDropdown.Name = "packageModeDropdown";
-			this.packageModeDropdown.Size = new System.Drawing.Size(252, 21);
+			this.packageModeDropdown.Size = new System.Drawing.Size(254, 21);
 			this.packageModeDropdown.TabIndex = 8;
 			// 
 			// label3
 			// 
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(8, 61);
+			this.label3.Location = new System.Drawing.Point(6, 61);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(80, 13);
 			this.label3.TabIndex = 9;
 			this.label3.Text = "Package Mode";
+			// 
+			// portedVpksList
+			// 
+			this.portedVpksList.FormattingEnabled = true;
+			this.portedVpksList.Location = new System.Drawing.Point(92, 85);
+			this.portedVpksList.Name = "portedVpksList";
+			this.portedVpksList.Size = new System.Drawing.Size(254, 94);
+			this.portedVpksList.TabIndex = 10;
+			// 
+			// label4
+			// 
+			this.label4.AutoSize = true;
+			this.label4.Location = new System.Drawing.Point(8, 85);
+			this.label4.Name = "label4";
+			this.label4.Size = new System.Drawing.Size(66, 26);
+			this.label4.TabIndex = 11;
+			this.label4.Text = "VPKs to port\r\ncontent from";
 			// 
 			// MainForm
 			// 
@@ -387,5 +408,7 @@
 		private System.Windows.Forms.Button processButton;
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.ComboBox packageModeDropdown;
+		private System.Windows.Forms.Label label4;
+		private System.Windows.Forms.CheckedListBox portedVpksList;
 	}
 }

@@ -90,6 +90,7 @@
     <Compile Include="Packager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VirtualFileSystem.cs" />
     <Compile Include="VMTFile.cs" />
     <Compile Include="VPKSystem.cs" />
   </ItemGroup>

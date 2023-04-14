@@ -10,18 +10,20 @@ namespace SourceMapAnalyzer
 	public class MDLFile
 	{
 		private string[] _textures;
+		private VirtualFileSystem _vfs;
 
 		public string[] Textures => _textures;
 
-		public MDLFile(string baseDir, string file)
+		public MDLFile(VirtualFileSystem vfs, VirtualFileSystem.IVfsFile file)
 		{
-			using(var stream = File.Open(file, FileMode.Open))
+			_vfs = vfs;
+			using(var stream = file.OpenRead())
 			{
-				ReadMaterials(baseDir, new BinaryReader(stream));
+				ReadMaterials(new BinaryReader(stream));
 			}
 		}
 
-		private void ReadMaterials(string baseDir, BinaryReader reader)
+		private void ReadMaterials(BinaryReader reader)
 		{
 			reader.BaseStream.Seek(204, SeekOrigin.Begin);
 
@@ -51,9 +53,8 @@ namespace SourceMapAnalyzer
 
 			// find each texture
 			_textures = textures
-				.SelectMany(t => textureDirs.Select(d => Path.Combine(baseDir, "materials", d, t)))
-				.Where(t => File.Exists(t + ".vmt"))
-				.Select(t => t.Replace(Path.GetFullPath(baseDir) + "\\", ""))
+				.SelectMany(t => textureDirs.Select(d => Path.Combine("materials", d, t)))
+				.Where(t => _vfs.Exists(t + ".vmt"))
 				.ToArray();
 		}
 	}

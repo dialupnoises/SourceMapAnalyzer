@@ -12,7 +12,7 @@ namespace SourceMapAnalyzer
 	{
 		private static readonly string[] ResourceFileExtensions = new string[] { ".vmt", ".mdl", ".jpg", ".png", ".svg", ".ogg", ".wav", ".mp3", "pcf", "otf", "ttf" };
 
-		public static void Package(Dictionary<string, MapAnalyzer> analyzers, PackageMode mode, string gameDir)
+		public static void Package(Dictionary<string, MapAnalyzer> analyzers, PackageMode mode, VirtualFileSystem vfs)
 		{
 			if(mode == PackageMode.None)
 			{
@@ -29,6 +29,7 @@ namespace SourceMapAnalyzer
 
 			var foundFiles = new Dictionary<string, HashSet<string>>();
 
+			// copy each map's content over
 			foreach(var map in analyzers)
 			{
 				var analyzer = map.Value;
@@ -46,7 +47,7 @@ namespace SourceMapAnalyzer
 					targetPath = "output";
 				}
 
-				Copyer.CopyFiles(gameDir, Path.GetFullPath(targetPath), analyzer.UsedResources, ref foundFiles);
+				Copyer.CopyFiles(vfs, Path.GetFullPath(targetPath), analyzer.UsedResources, ref foundFiles);
 			}
 
 			if(mode == PackageMode.CombinedAddon)

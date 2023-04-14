@@ -10,6 +10,8 @@ namespace SourceMapAnalyzer
 {
 	public partial class MainForm : Form
 	{
+		private HashSet<string> portedVpks = new HashSet<string>();
+
 		public MainForm()
 		{
 			InitializeComponent();
@@ -40,6 +42,15 @@ namespace SourceMapAnalyzer
 				UpdateButtonConditions();
 			};
 
+			portedVpksList.ItemCheck += (sender, e) =>
+			{
+				portedVpks.Clear();
+				foreach(var item in portedVpksList.CheckedItems)
+				{
+					portedVpks.Add(item.ToString());
+				}
+			};
+
 			// load cache
 			if(File.Exists(".cache.json"))
 			{
@@ -50,8 +61,10 @@ namespace SourceMapAnalyzer
 				gameDirBox.Text = cachedData.GameDir;
 				gameFgdBox.Text = cachedData.GameFgd;
 				packageModeDropdown.SelectedIndex = packageModeDropdown.Items.IndexOf(cachedData.PackageMode);
+				portedVpks = new HashSet<string>(cachedData.PortedVpks ?? new string[] { });
 
 				UpdateButtonConditions();
+				UpdatePortedVpkList();
 			}
 		}
 
@@ -64,6 +77,17 @@ namespace SourceMapAnalyzer
 				!string.IsNullOrWhiteSpace(gameFgdBox.Text) &&
 				!string.IsNullOrWhiteSpace(gameDirBox.Text)
 			);
+		}
+
+		private void UpdatePortedVpkList()
+		{
+			portedVpksList.Items.Clear();
+
+			var dirs = new HashSet<string>(vpkListBox.Items.Cast<string>().Select(p => Path.GetFileName(Path.GetDirectoryName(p))));
+			foreach(var dir in dirs)
+			{
+				portedVpksList.Items.Add(dir, portedVpks.Contains(dir));
+			}
 		}
 
 		private void RegisterMultiSelectEvents(Button button, ListBox box, string type)
@@ -79,6 +103,7 @@ namespace SourceMapAnalyzer
 				}
 
 				UpdateButtonConditions();
+				UpdatePortedVpkList();
 			};
 
 			box.KeyUp += (sender, e) =>
@@ -97,12 +122,18 @@ namespace SourceMapAnalyzer
 				box.Items.AddRange(newItems.ToArray());
 
 				UpdateButtonConditions();
+				UpdatePortedVpkList();
 			};
 		}
 
 		private void processButton_Click(object sender, System.EventArgs e)
 		{
 			var packageModeText = packageModeDropdown.SelectedItem.ToString();
+			portedVpks.Clear();
+			foreach(var item in portedVpksList.CheckedItems)
+			{
+				portedVpks.Add(item.ToString());
+			}
 
 			// cache inputs
 			var cache = new CachedValues()
@@ -112,16 +143,34 @@ namespace SourceMapAnalyzer
 				Maps = mapBox.Items.Cast<string>().ToArray(),
 				GameDir = gameDirBox.Text,
 				GameFgd = gameFgdBox.Text,
-				PackageMode = packageModeText
+				PackageMode = packageModeText,
+				PortedVpks = portedVpks.ToArray()
 			};
 			File.WriteAllText(".cache.json", JsonConvert.SerializeObject(cache));
 
+			var sourceVpks = new HashSet<string>();
+			var portVpks = new HashSet<string>();
+
+			foreach(var vpk in vpkListBox.Items.Cast<string>())
+			{
+				var dir = Path.GetFileName(Path.GetDirectoryName(vpk));
+				if(portedVpks.Contains(dir))
+				{
+					portVpks.Add(vpk);
+				}
+				else
+				{
+					sourceVpks.Add(vpk);
+				}
+			}
+
+			var vfs = new VirtualFileSystem(portVpks.ToArray(), new string[] { gameDirBox.Text });
+
 			var fgdFiles = baseFgdListBox.Items.Cast<string>();
-			var vpkFiles = vpkListBox.Items.Cast<string>();
 			var analyzers = new Dictionary<string, MapAnalyzer>();
 			foreach(var map in mapBox.Items)
 			{
-				var analyzer = new MapAnalyzer(map.ToString(), gameDirBox.Text, fgdFiles, new string[] { gameFgdBox.Text }, vpkFiles);
+				var analyzer = new MapAnalyzer(map.ToString(), vfs, fgdFiles, new string[] { gameFgdBox.Text }, sourceVpks.ToArray());
 				analyzer.Output();
 				analyzers[map.ToString()] = analyzer;
 			}
@@ -144,7 +193,7 @@ namespace SourceMapAnalyzer
 					break;
 			}
 
-			Packager.Package(analyzers, packageMode, gameDirBox.Text);
+			Packager.Package(analyzers, packageMode, vfs);
 
 			MessageBox.Show("Completed!");
 		}
@@ -157,6 +206,7 @@ namespace SourceMapAnalyzer
 			public string GameDir;
 			public string GameFgd;
 			public string PackageMode;
+			public string[] PortedVpks;
 		}
 	}
 }

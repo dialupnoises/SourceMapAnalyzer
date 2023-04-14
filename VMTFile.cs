@@ -11,10 +11,10 @@ namespace SourceMapAnalyzer
 {
 	public static class VMTReader
 	{
-		public static string[] ReadVmts(VPKSystem vpk, string baseDir, IEnumerable<string> files)
+		public static string[] ReadVmts(VPKSystem vpk, VirtualFileSystem vfs, IEnumerable<string> files)
 		{
-			var readVmts = new HashSet<string>();
-			var vmtsToRead = new HashSet<string>(files);
+			var readVmts = new HashSet<string>(new StringIEqualityComparer());
+			var vmtsToRead = new HashSet<string>(files, new StringIEqualityComparer());
 
 			while(vmtsToRead.Any())
 			{
@@ -23,10 +23,10 @@ namespace SourceMapAnalyzer
 				// not in a vpk, so we need to check it
 				if(!vpk.ContainsFile(newVmtFile))
 				{
-					var path = Path.Combine(baseDir, newVmtFile);
-					if(File.Exists(path))
+					var vfsVmt = vfs.GetFile(newVmtFile);
+					if (vfsVmt != null)
 					{
-						var keys = ParseVmt(File.ReadAllText(path));
+						var keys = ParseVmt(vfsVmt.ReadAllText());
 						AddKeyIfExists("$basetexture", ref keys, ref vmtsToRead, ref readVmts);
 						AddKeyIfExists("$bumpmap", ref keys, ref vmtsToRead, ref readVmts);
 						AddKeyIfExists("$detail", ref keys, ref vmtsToRead, ref readVmts);
@@ -60,7 +60,7 @@ namespace SourceMapAnalyzer
 				{
 					return;
 				}
-				vmtsToRead.Add(tex);
+				vmtsToRead.Add(Path.Combine("materials", tex));
 			}
 		}
 
@@ -96,6 +96,19 @@ namespace SourceMapAnalyzer
 			} while (depth > 0);
 
 			return keys;
+		}
+
+		private class StringIEqualityComparer : IEqualityComparer<string>
+		{
+			public bool Equals(string x, string y)
+			{
+				return x.Equals(y, StringComparison.OrdinalIgnoreCase);
+			}
+
+			public int GetHashCode(string obj)
+			{
+				return obj.ToLower().GetHashCode();
+			}
 		}
 	}
 }

@@ -37,8 +37,10 @@ namespace SourceMapAnalyzer
 				return;
 			}
 
+			var vfs = new VirtualFileSystem(new string[] { }, new string[] { gameDir });
+
 			p.Parse(args);
-			var analyzer = new MapAnalyzer(map, gameDir, baseFgds, gameFgds, vpks);
+			var analyzer = new MapAnalyzer(map, vfs, baseFgds, gameFgds, vpks);
 			analyzer.Output();
 		}
 	}

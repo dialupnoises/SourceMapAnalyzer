@@ -13,7 +13,7 @@ namespace SourceMapAnalyzer
 		private BSPFile _bsp;
 		private FGDDiff _diff;
 		private VPKSystem _packageSystem;
-		private string _gameDir;
+		private VirtualFileSystem _vfs;
 
 		private string[] _usedResources;
 		private string[] _uniqueEntities;
@@ -25,13 +25,13 @@ namespace SourceMapAnalyzer
 
 		public BSPFile BspFile => _bsp;
 
-		public MapAnalyzer(string bspFile, string gameDir, IEnumerable<string> fgdFiles, IEnumerable<string> gameFgds, IEnumerable<string> vpks)
+		public MapAnalyzer(string bspFile, VirtualFileSystem vfs, IEnumerable<string> fgdFiles, IEnumerable<string> gameFgds, IEnumerable<string> vpks)
 		{
 			var sourceFgds = fgdFiles.Select(f => ForgeGameData.LoadFGD(f));
 			var newFgds = gameFgds.Select(f => ForgeGameData.LoadFGD(f));
 			var fgdLookup = new FGDLookup(sourceFgds.Concat(newFgds).ToArray());
 
-			_gameDir = gameDir;
+			_vfs = vfs;
 			_bsp = new BSPFile(fgdLookup, bspFile);
 			_diff = FGDDiffer.Diff(sourceFgds, newFgds);
 			_packageSystem = new VPKSystem(vpks);
@@ -107,8 +107,8 @@ namespace SourceMapAnalyzer
 
 			var modelMatsUsed = 
 				usedModels
-				.Where(m => File.Exists(Path.Combine(_gameDir, m + ".mdl")))
-				.SelectMany(m => new MDLFile(_gameDir, Path.Combine(_gameDir, m + ".mdl")).Textures)
+				.Where(m => _vfs.Exists(m + ".mdl"))
+				.SelectMany(m => new MDLFile(_vfs, _vfs.GetFile(m + ".mdl")).Textures)
 				.Distinct()
 				.Where(m => IsResourceUnique(m + ".vmt"))
 				.ToArray();
@@ -118,7 +118,7 @@ namespace SourceMapAnalyzer
 					.Select(s => "sound\\" + s)
 					.Where(s => IsResourceUnique(s));
 
-			var foundMats = VMTReader.ReadVmts(_packageSystem, _gameDir, usedMaterials.Concat(modelMatsUsed));
+			var foundMats = VMTReader.ReadVmts(_packageSystem, _vfs, usedMaterials.Concat(modelMatsUsed));
 
 			_usedResources = foundMats.Concat(usedModels).Concat(usedSounds).ToArray();
 		}

@@ -12,22 +12,15 @@ namespace SourceMapAnalyzer
 		/// <summary>
 		/// Copies files from baseDir to newDir
 		/// </summary>
-		public static void CopyFiles(string baseDir, string newDir, IEnumerable<string> files, ref Dictionary<string, HashSet<string>> foundFiles)
+		public static void CopyFiles(VirtualFileSystem vfs, string newDir, IEnumerable<string> files, ref Dictionary<string, HashSet<string>> foundFiles)
 		{
-			var readDirs = new Dictionary<string, string[]>();
 			foreach(var file in files)
 			{
 				var fileNoExt = WithoutAllExtensions(file).ToLower();
 				var fileDir = Path.GetDirectoryName(file);
-				var searchDir = Path.Combine(baseDir, fileDir);
-				if (!Directory.Exists(searchDir))
+				if (!vfs.Exists(fileDir))
 				{
 					continue;
-				}
-
-				if (!readDirs.ContainsKey(searchDir))
-				{
-					readDirs[searchDir] = Directory.GetFiles(searchDir);
 				}
 
 				if (!foundFiles.ContainsKey(file))
@@ -35,17 +28,17 @@ namespace SourceMapAnalyzer
 					foundFiles[file] = new HashSet<string>();
 				}
 
-				var filesWithName = readDirs[searchDir].Where(f => WithoutAllExtensions(f).ToLower() == fileNoExt);
+				var filesWithName = vfs.GetFiles(fileDir).Where(f => WithoutAllExtensions(f.FileName).ToLower() == fileNoExt);
 				CreateDirectoryStructure(newDir, fileDir);
 				foreach(var f in filesWithName)
 				{
-					var destFile = Path.Combine(newDir, f.Replace(baseDir + "\\", ""));
+					var destFile = Path.Combine(newDir, f.FilePath);
 					if (!File.Exists(destFile))
 					{
-						File.Copy(f, destFile);
+						f.Copy(destFile);
 					}
 
-					foundFiles[file].Add(Path.GetExtension(f));
+					foundFiles[file].Add(Path.GetExtension(f.FileName));
 				}
 			}
 		}
