@@ -23,6 +23,8 @@ namespace SourceMapAnalyzer
 		public string[] UniqueEntities => _uniqueEntities;
 		public string[] DifferentEntities => _differentEntities;
 
+		public BSPFile BspFile => _bsp;
+
 		public MapAnalyzer(string bspFile, string gameDir, IEnumerable<string> fgdFiles, IEnumerable<string> gameFgds, IEnumerable<string> vpks)
 		{
 			var sourceFgds = fgdFiles.Select(f => ForgeGameData.LoadFGD(f));
@@ -41,19 +43,8 @@ namespace SourceMapAnalyzer
 		/// <summary>
 		/// Copies data, if makePackage is true, and outputs report.
 		/// </summary>
-		public void Output(bool makePackage, string gameDir)
+		public void Output()
 		{
-			if (makePackage)
-			{
-				var dir = Path.GetFileNameWithoutExtension(_bsp.FilePath);
-				if (!Directory.Exists(dir))
-				{
-					Directory.CreateDirectory(dir);
-				}
-
-				Copyer.CopyFiles(gameDir, Path.GetFullPath(dir), UsedResources);
-			}
-
 			using (var writer = new StreamWriter(File.Open(Path.GetFileNameWithoutExtension(_bsp.FilePath) + ".txt", FileMode.Create)))
 			{
 				writer.WriteLine("-- RESOURCES USED --");
@@ -127,7 +118,9 @@ namespace SourceMapAnalyzer
 					.Select(s => "sound\\" + s)
 					.Where(s => IsResourceUnique(s));
 
-			_usedResources = usedMaterials.Concat(modelMatsUsed).Concat(usedModels).Concat(usedSounds).ToArray();
+			var foundMats = VMTReader.ReadVmts(_packageSystem, _gameDir, usedMaterials.Concat(modelMatsUsed));
+
+			_usedResources = foundMats.Concat(usedModels).Concat(usedSounds).ToArray();
 		}
 		
 		private bool IsResourceUnique(string p)

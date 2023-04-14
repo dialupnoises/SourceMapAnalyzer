@@ -43,13 +43,14 @@
 			this.mapAddButton = new System.Windows.Forms.Button();
 			this.processTab = new System.Windows.Forms.TabPage();
 			this.processButton = new System.Windows.Forms.Button();
-			this.packageCheckbox = new System.Windows.Forms.CheckBox();
 			this.gameDirBox = new System.Windows.Forms.TextBox();
 			this.gameDirButton = new System.Windows.Forms.Button();
 			this.label2 = new System.Windows.Forms.Label();
 			this.gameFgdBox = new System.Windows.Forms.TextBox();
 			this.gameFgdButton = new System.Windows.Forms.Button();
 			this.label1 = new System.Windows.Forms.Label();
+			this.packageModeDropdown = new System.Windows.Forms.ComboBox();
+			this.label3 = new System.Windows.Forms.Label();
 			this.vpkTabPage.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.vpkContainer)).BeginInit();
 			this.vpkContainer.Panel1.SuspendLayout();
@@ -231,8 +232,9 @@
 			// 
 			// processTab
 			// 
+			this.processTab.Controls.Add(this.label3);
+			this.processTab.Controls.Add(this.packageModeDropdown);
 			this.processTab.Controls.Add(this.processButton);
-			this.processTab.Controls.Add(this.packageCheckbox);
 			this.processTab.Controls.Add(this.gameDirBox);
 			this.processTab.Controls.Add(this.gameDirButton);
 			this.processTab.Controls.Add(this.label2);
@@ -257,18 +259,6 @@
 			this.processButton.Text = "Process";
 			this.processButton.UseVisualStyleBackColor = true;
 			this.processButton.Click += new System.EventHandler(this.processButton_Click);
-			// 
-			// packageCheckbox
-			// 
-			this.packageCheckbox.AutoSize = true;
-			this.packageCheckbox.Checked = true;
-			this.packageCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.packageCheckbox.Location = new System.Drawing.Point(196, 305);
-			this.packageCheckbox.Name = "packageCheckbox";
-			this.packageCheckbox.Size = new System.Drawing.Size(69, 17);
-			this.packageCheckbox.TabIndex = 6;
-			this.packageCheckbox.Text = "Package";
-			this.packageCheckbox.UseVisualStyleBackColor = true;
 			// 
 			// gameDirBox
 			// 
@@ -319,6 +309,28 @@
 			this.label1.Size = new System.Drawing.Size(60, 13);
 			this.label1.TabIndex = 0;
 			this.label1.Text = "Game FGD";
+			// 
+			// packageModeDropdown
+			// 
+			this.packageModeDropdown.FormattingEnabled = true;
+			this.packageModeDropdown.Items.AddRange(new object[] {
+            "None",
+            "Folder Per Map",
+            "Combined Folder",
+            "Combined Addon"});
+			this.packageModeDropdown.Location = new System.Drawing.Point(94, 58);
+			this.packageModeDropdown.Name = "packageModeDropdown";
+			this.packageModeDropdown.Size = new System.Drawing.Size(252, 21);
+			this.packageModeDropdown.TabIndex = 8;
+			// 
+			// label3
+			// 
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(8, 61);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(80, 13);
+			this.label3.TabIndex = 9;
+			this.label3.Text = "Package Mode";
 			// 
 			// MainForm
 			// 
@@ -373,6 +385,7 @@
 		private System.Windows.Forms.Button gameDirButton;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Button processButton;
-		private System.Windows.Forms.CheckBox packageCheckbox;
+		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.ComboBox packageModeDropdown;
 	}
 }

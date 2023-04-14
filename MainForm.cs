@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using Ookii.Dialogs;
+using Ookii.Dialogs.WinForms;
+using Newtonsoft.Json;
+using System.IO;
+using System.Security.Policy;
 
 namespace SourceMapAnalyzer
 {
@@ -36,6 +39,20 @@ namespace SourceMapAnalyzer
 
 				UpdateButtonConditions();
 			};
+
+			// load cache
+			if(File.Exists(".cache.json"))
+			{
+				var cachedData = JsonConvert.DeserializeObject<CachedValues>(File.ReadAllText(".cache.json"));
+				baseFgdListBox.Items.AddRange(cachedData.FgdFiles);
+				vpkListBox.Items.AddRange(cachedData.VpkFiles);
+				mapBox.Items.AddRange(cachedData.Maps);
+				gameDirBox.Text = cachedData.GameDir;
+				gameFgdBox.Text = cachedData.GameFgd;
+				packageModeDropdown.SelectedIndex = packageModeDropdown.Items.IndexOf(cachedData.PackageMode);
+
+				UpdateButtonConditions();
+			}
 		}
 
 		private void UpdateButtonConditions()
@@ -85,15 +102,61 @@ namespace SourceMapAnalyzer
 
 		private void processButton_Click(object sender, System.EventArgs e)
 		{
+			var packageModeText = packageModeDropdown.SelectedItem.ToString();
+
+			// cache inputs
+			var cache = new CachedValues()
+			{
+				FgdFiles = baseFgdListBox.Items.Cast<string>().ToArray(),
+				VpkFiles = vpkListBox.Items.Cast<string>().ToArray(),
+				Maps = mapBox.Items.Cast<string>().ToArray(),
+				GameDir = gameDirBox.Text,
+				GameFgd = gameFgdBox.Text,
+				PackageMode = packageModeText
+			};
+			File.WriteAllText(".cache.json", JsonConvert.SerializeObject(cache));
+
 			var fgdFiles = baseFgdListBox.Items.Cast<string>();
 			var vpkFiles = vpkListBox.Items.Cast<string>();
+			var analyzers = new Dictionary<string, MapAnalyzer>();
 			foreach(var map in mapBox.Items)
 			{
 				var analyzer = new MapAnalyzer(map.ToString(), gameDirBox.Text, fgdFiles, new string[] { gameFgdBox.Text }, vpkFiles);
-				analyzer.Output(packageCheckbox.Checked, gameDirBox.Text);
+				analyzer.Output();
+				analyzers[map.ToString()] = analyzer;
 			}
 
+			var packageMode = PackageMode.None;
+			switch(packageModeText)
+			{
+				case "None":
+				default:
+					packageMode = PackageMode.None;
+					break;
+				case "Folder Per Map":
+					packageMode = PackageMode.FolderPerMap;
+					break;
+				case "Combined Folder":
+					packageMode = PackageMode.CombinedFolder;
+					break;
+				case "Combined Addon":
+					packageMode = PackageMode.CombinedAddon;
+					break;
+			}
+
+			Packager.Package(analyzers, packageMode, gameDirBox.Text);
+
 			MessageBox.Show("Completed!");
+		}
+
+		private class CachedValues
+		{
+			public string[] FgdFiles;
+			public string[] VpkFiles;
+			public string[] Maps;
+			public string GameDir;
+			public string GameFgd;
+			public string PackageMode;
 		}
 	}
 }

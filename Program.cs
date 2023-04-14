@@ -39,7 +39,7 @@ namespace SourceMapAnalyzer
 
 			p.Parse(args);
 			var analyzer = new MapAnalyzer(map, gameDir, baseFgds, gameFgds, vpks);
-			analyzer.Output(makePackage, gameDir);
+			analyzer.Output();
 		}
 	}
 }

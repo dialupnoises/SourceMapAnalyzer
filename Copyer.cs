@@ -12,7 +12,7 @@ namespace SourceMapAnalyzer
 		/// <summary>
 		/// Copies files from baseDir to newDir
 		/// </summary>
-		public static void CopyFiles(string baseDir, string newDir, IEnumerable<string> files)
+		public static void CopyFiles(string baseDir, string newDir, IEnumerable<string> files, ref Dictionary<string, HashSet<string>> foundFiles)
 		{
 			var readDirs = new Dictionary<string, string[]>();
 			foreach(var file in files)
@@ -30,6 +30,11 @@ namespace SourceMapAnalyzer
 					readDirs[searchDir] = Directory.GetFiles(searchDir);
 				}
 
+				if (!foundFiles.ContainsKey(file))
+				{
+					foundFiles[file] = new HashSet<string>();
+				}
+
 				var filesWithName = readDirs[searchDir].Where(f => WithoutAllExtensions(f).ToLower() == fileNoExt);
 				CreateDirectoryStructure(newDir, fileDir);
 				foreach(var f in filesWithName)
@@ -39,13 +44,12 @@ namespace SourceMapAnalyzer
 					{
 						File.Copy(f, destFile);
 					}
+
+					foundFiles[file].Add(Path.GetExtension(f));
 				}
 			}
 		}
-
-		private static string WithoutAllExtensions(string fileName) => Path.GetFileName(fileName).Split('.')[0];
-
-		private static void CreateDirectoryStructure(string baseDir, string dir)
+		public static void CreateDirectoryStructure(string baseDir, string dir)
 		{
 			var parts = dir.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 			var partsCreated = new List<string>() { baseDir };
@@ -59,5 +63,6 @@ namespace SourceMapAnalyzer
 				}
 			}
 		}
+		private static string WithoutAllExtensions(string fileName) => Path.GetFileName(fileName).Split('.')[0];
 	}
 }
