@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SourceMapAnalyzer
@@ -34,6 +35,8 @@ namespace SourceMapAnalyzer
 		private BSPLump[] _lumps;
 		private FGDLookup _fgdLookup;
 		private string _file;
+		private Regex _brushTextureRegex;
+		private VirtualFileSystem _vfs;
 
 		/// <summary>
 		/// The path to the file.
@@ -75,10 +78,13 @@ namespace SourceMapAnalyzer
 		/// <summary>
 		/// Create a BSP file.
 		/// </summary>
-		public BSPFile(FGDLookup lookup, string file)
+		public BSPFile(VirtualFileSystem vfs, FGDLookup lookup, string file)
 		{
 			_file = file;
 			_fgdLookup = lookup;
+			_vfs = vfs;
+
+			_brushTextureRegex = new Regex($@"maps(/|\\){Path.GetFileNameWithoutExtension(file).ToLower()}(/|\\)(.+?)_-?\d+_-?\d+_-?\d+$");
 
 			using(var f = File.Open(file, FileMode.Open))
 			{
@@ -281,10 +287,31 @@ namespace SourceMapAnalyzer
 				}
 				else if(type == FGDLookup.FGDType.Sound)
 				{
-					if(ent[key].EndsWith("wav", StringComparison.CurrentCulture) || ent[key].EndsWith("mp3", StringComparison.CurrentCulture))
+					if (ent[key].EndsWith("wav", StringComparison.CurrentCulture) || ent[key].EndsWith("mp3", StringComparison.CurrentCulture))
+					{
 						sounds.Add(ConformPath(ent[key]));
+					}
 					else
+					{
 						sounds.Add(ent[key]);
+					}
+				}
+				else if(type == FGDLookup.FGDType.String)
+				{
+					var file = Path.Combine(Path.GetDirectoryName(ent[key]), Path.GetFileNameWithoutExtension(ent[key]));
+					var extension = Path.GetExtension(ent[key]);
+					if (extension == ".vmt" || extension == ".vtf" || _vfs.ExistsNoExtension("materials/" + file))
+					{
+						materials.Add(ConformPath(file));
+					}
+					else if(extension == ".mdl" || _vfs.ExistsNoExtension("models/" + file))
+					{
+						models.Add(ConformPath(file));
+					}
+					else if(extension == ".wav" || extension == ".mp3" || extension == ".ogg" || _vfs.ExistsNoExtension("sound/" + file))
+					{
+						sounds.Add(ConformPath(file));
+					}
 				}
 			}
 		}
@@ -306,7 +333,13 @@ namespace SourceMapAnalyzer
 			for(var i = 0; i < numTextures; i++)
 			{
 				reader.BaseStream.Seek(baseOffset + textureOffsets[i], SeekOrigin.Begin);
-				_materials[i] = ReadNullTerminatedString(reader).ToLower().Replace('/', '\\');
+				var str = ReadNullTerminatedString(reader).ToLower();
+				var match = _brushTextureRegex.Match(str);
+				if(match.Success)
+				{
+					str = match.Groups[3].Value;
+				}
+				_materials[i] = str.Replace('/', '\\');
 			}
 		}
 

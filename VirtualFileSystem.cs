@@ -29,6 +29,18 @@ namespace SourceMapAnalyzer
 			}
 		}
 
+		public bool ExistsNoExtension(string file)
+		{
+			file = file.ToLower();
+			var node = GetNode(Path.GetDirectoryName(file));
+			if(node == null)
+			{
+				return false;
+			}
+
+			return node.Children.Any(c => c.Name.Split('.')[0] == file);
+		}
+
 		public bool Exists(string file) => GetNode(file) != null;
 
 		public IVfsFile GetFile(string file) => GetNode(file)?.File;

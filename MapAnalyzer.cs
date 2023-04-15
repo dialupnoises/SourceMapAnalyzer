@@ -32,7 +32,7 @@ namespace SourceMapAnalyzer
 			var fgdLookup = new FGDLookup(sourceFgds.Concat(newFgds).ToArray());
 
 			_vfs = vfs;
-			_bsp = new BSPFile(fgdLookup, bspFile);
+			_bsp = new BSPFile(vfs, fgdLookup, bspFile);
 			_diff = FGDDiffer.Diff(sourceFgds, newFgds);
 			_packageSystem = new VPKSystem(vpks);
 
